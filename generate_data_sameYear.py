@@ -4,7 +4,7 @@ from collections import defaultdict
 mode = 'ipv4&6'
 year = '2021'
 area_list = ['all', 'CH', 'US', 'CH&US'] # 地区
-area = area_list[0]
+area = area_list[1]
 
 
 org_asn = defaultdict(list)  # 组织所管辖的AS列表
@@ -57,11 +57,13 @@ def write_edges(filepath, type):
             elif area == area_list[3]:  # 中美
                 areaSet = ['CH', 'TW', 'HK', 'MO', 'US']
 
+            if area == area_list[0] or c1 in areaSet:                
+                outdegreeMap[as1] += 1
+                
             if area == area_list[0] or {c1, c2}.issubset(areaSet):
                 set_c.add(as1)
                 set_c.add(as2)
 
-                outdegreeMap[as1] += 1
                 indegreeMap[as2] += 1
 
                 # 如果是ipv4直接写入，如果是ipv6，先找有没有ipv4，如果有 修改。 如果没有 写入
@@ -76,6 +78,17 @@ def write_edges(filepath, type):
         line = f.readline()  # 继续读下一行
     f.close()
 
+def mag(deg):
+    if deg < 10:
+        return 1
+    elif deg < 100:
+        return 2
+    elif deg < 1000:
+        return 3
+    elif deg < 10000:
+        return 4
+    else:
+        return 5
 
 if __name__ == '__main__':
     edgeCSV = open("./outputs/edges_"+mode+'_'+year+'_'+area+".csv", 'w', encoding='utf8')
@@ -84,8 +97,8 @@ if __name__ == '__main__':
     nodeWriter = csv.writer(nodeCSV)
     edgeWriter = csv.writer(edgeCSV)
 
-    nodeTitle = ['id', 'label', 'degree', 'outdegree', 'indegree', 'org', 'country', 'score']
-    edgeTitle = ['source', 'target', 'mode', 'sourceOutdegree']
+    nodeTitle = ['id', 'label', 'degree', 'outdegree', 'indegree', 'org', 'country', 'score', 'mag']
+    edgeTitle = ['source', 'target', 'mode', 'sourceOutdegree', 'mag']
 
     nodeWriter.writerow(nodeTitle)
     edgeWriter.writerow(edgeTitle)
@@ -106,7 +119,12 @@ if __name__ == '__main__':
 
     for item in buffer:
         # as1, as2, type, as1的出度
-        edgeWriter.writerow([item[0], item[1], buffer[item], outdegreeMap[item[0]]])
+        edgeWriter.writerow([item[0], item[1], buffer[item], outdegreeMap[item[0]], mag(outdegreeMap[item[0]])])
+    edgeWriter.writerow([1000000, 1000001, 0, 0, 5])
+    edgeWriter.writerow([1000000, 1000002, 0, 0, 4])
+    edgeWriter.writerow([1000000, 1000003, 0, 0, 3])
+    edgeWriter.writerow([1000000, 1000004, 0, 0, 2])
+    edgeWriter.writerow([1000000, 1000000, 0, 0, 1])
     edgeCSV.close()
 
     set_c = list(set_c)
@@ -117,10 +135,15 @@ if __name__ == '__main__':
         outdegree = outdegreeMap[key]
         indegree = indegreeMap[key]
         degree = outdegree+indegree
+        
 
         # id, label, 度，出度，入度，org_id, country, score（暂时没用）
-        row_content = [key, str(key), degree, outdegree, indegree, org_id, country, 0]
-        print(row_content)
+        row_content = [key, str(key), degree, outdegree, indegree, org_id, country, 0, mag(outdegree)]
         nodeWriter.writerow(row_content)
         
+    nodeWriter.writerow([1000000, 0, 0, 0, 0, 0, 0, 0, 5])
+    nodeWriter.writerow([1000001, 0, 0, 0, 0, 0, 0, 0, 4])
+    nodeWriter.writerow([1000002, 0, 0, 0, 0, 0, 0, 0, 3])
+    nodeWriter.writerow([1000003, 0, 0, 0, 0, 0, 0, 0, 2])
+    nodeWriter.writerow([1000004, 0, 0, 0, 0, 0, 0, 0, 1])
     nodeCSV.close()
