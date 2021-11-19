@@ -3,13 +3,13 @@ from collections import defaultdict
 
 mode = 'ipv4&6'
 year = '2021'
-area_list = ['all', 'CH', 'US', 'CH&US'] # 地区
-area = area_list[1]
-
+area_list = ['all', 'CH', 'US', 'CH&US']  # 地区
+area = area_list[0]
 
 org_asn = defaultdict(list)  # 组织所管辖的AS列表
 asn_org = defaultdict(str)  # AS编号到组织的映射
 org_country = defaultdict(str)  # 组织到国家/地区的映射
+asn_name = defaultdict(str)
 
 buffer = defaultdict(str)  # (as1, as2) -> ipv4/ipv6/ipv4&6
 
@@ -31,9 +31,10 @@ def dealCountry(asn_org_file):
             if format_counter == 2:  # 第二段
                 asn = line.split('|')[0]
                 org_id = line.split('|')[3]
+                name = line.split('|')[2]
                 org_asn[org_id].append(asn)  # org_asn[org_id]表示org_id管理的的asn的列表
                 asn_org[asn] = org_id
-
+                asn_name[asn] = name
 
 # 解析as_path.txt文件，生成边数据
 def write_edges(filepath, type):
@@ -57,14 +58,12 @@ def write_edges(filepath, type):
             elif area == area_list[3]:  # 中美
                 areaSet = ['CH', 'TW', 'HK', 'MO', 'US']
 
-            if area == area_list[0] or c1 in areaSet:                
-                outdegreeMap[as1] += 1
-                
+            # 全世界范围内的，不作限制 或 这一条边的两个节点都在这个范围内
             if area == area_list[0] or {c1, c2}.issubset(areaSet):
+                outdegreeMap[as1] += 1
+                indegreeMap[as2] += 1
                 set_c.add(as1)
                 set_c.add(as2)
-
-                indegreeMap[as2] += 1
 
                 # 如果是ipv4直接写入，如果是ipv6，先找有没有ipv4，如果有 修改。 如果没有 写入
                 if type == 'ipv4':
@@ -75,8 +74,36 @@ def write_edges(filepath, type):
                     else:
                         buffer[(as1, as2)] = type  # 添加新的ipv6
 
+            else:  # 只有1个节点在。此时不加边，只加出度/入度
+                if c1 in areaSet:  # 只有 c1 -> 其他区域，把c1的出度算进去，另一个节点不放入。
+                    outdegreeMap[as1] += 1
+                    set_c.add(as1)
+                elif c2 in areaSet:
+                    indegreeMap[as2] += 1  # 只有其他区域-> c2，把c2的入度算进去，另一个节点不放入
+                    set_c.add(as2)
+
+
+            # if area == area_list[0] or c1 in areaSet:
+            #     outdegreeMap[as1] += 1
+            #
+            # if area == area_list[0] or {c1, c2}.issubset(areaSet):
+            #     set_c.add(as1)
+            #     set_c.add(as2)
+            #
+            #     indegreeMap[as2] += 1
+
+                # # 如果是ipv4直接写入，如果是ipv6，先找有没有ipv4，如果有 修改。 如果没有 写入
+                # if type == 'ipv4':
+                #     buffer[(as1, as2)] = type
+                # else:
+                #     if buffer.get((as1, as2)) != None:  # 已有ipv4的边，修改
+                #         buffer[(as1, as2)] = 'ipv4&6'
+                #     else:
+                #         buffer[(as1, as2)] = type  # 添加新的ipv6
+
         line = f.readline()  # 继续读下一行
     f.close()
+
 
 def mag(deg):
     if deg < 10:
@@ -90,20 +117,21 @@ def mag(deg):
     else:
         return 5
 
+
 if __name__ == '__main__':
-    edgeCSV = open("./outputs/edges_"+mode+'_'+year+'_'+area+".csv", 'w', encoding='utf8')
-    nodeCSV = open("./outputs/nodes_"+mode+'_'+year+'_'+area+".csv", 'w', encoding='utf8')
+    edgeCSV = open("./outputs/edges_" + mode + '_' + year + '_' + area + ".csv", 'w', encoding='utf8')
+    nodeCSV = open("./outputs/nodes_" + mode + '_' + year + '_' + area + ".csv", 'w', encoding='utf8')
 
     nodeWriter = csv.writer(nodeCSV)
     edgeWriter = csv.writer(edgeCSV)
 
-    nodeTitle = ['id', 'label', 'degree', 'outdegree', 'indegree', 'org', 'country', 'score', 'mag']
+    nodeTitle = ['id', 'label', 'name', 'degree', 'outdegree', 'indegree', 'org', 'country', 'score', 'mag']
     edgeTitle = ['source', 'target', 'mode', 'sourceOutdegree', 'mag']
 
     nodeWriter.writerow(nodeTitle)
     edgeWriter.writerow(edgeTitle)
 
-    dealCountry('./resources/'+year+'0101.as-org2info.txt')
+    dealCountry('./resources/' + year + '0101.as-org2info.txt')
     set_c = set()
     outdegreeMap = defaultdict(int)
     indegreeMap = defaultdict(int)
@@ -120,11 +148,11 @@ if __name__ == '__main__':
     for item in buffer:
         # as1, as2, type, as1的出度
         edgeWriter.writerow([item[0], item[1], buffer[item], outdegreeMap[item[0]], mag(outdegreeMap[item[0]])])
-    edgeWriter.writerow([1000000, 1000001, 0, 0, 5])
-    edgeWriter.writerow([1000000, 1000002, 0, 0, 4])
-    edgeWriter.writerow([1000000, 1000003, 0, 0, 3])
-    edgeWriter.writerow([1000000, 1000004, 0, 0, 2])
-    edgeWriter.writerow([1000000, 1000000, 0, 0, 1])
+    # edgeWriter.writerow([1000000, 1000001, 0, 0, 5])
+    # edgeWriter.writerow([1000000, 1000002, 0, 0, 4])
+    # edgeWriter.writerow([1000000, 1000003, 0, 0, 3])
+    # edgeWriter.writerow([1000000, 1000004, 0, 0, 2])
+    # edgeWriter.writerow([1000000, 1000000, 0, 0, 1])
     edgeCSV.close()
 
     set_c = list(set_c)
@@ -132,18 +160,20 @@ if __name__ == '__main__':
     for key in set_c:
         org_id = asn_org[str(key)]
         country = org_country[org_id]
+        name = asn_name[str(key)]
         outdegree = outdegreeMap[key]
         indegree = indegreeMap[key]
-        degree = outdegree+indegree
-        
+
+        degree = outdegree + indegree
 
         # id, label, 度，出度，入度，org_id, country, score（暂时没用）
-        row_content = [key, str(key), degree, outdegree, indegree, org_id, country, 0, mag(outdegree)]
+        row_content = [key, str(key), name, degree, outdegree, indegree, org_id, country, 0, mag(outdegree)]
+        print(row_content)
         nodeWriter.writerow(row_content)
-        
-    nodeWriter.writerow([1000000, 0, 0, 0, 0, 0, 0, 0, 5])
-    nodeWriter.writerow([1000001, 0, 0, 0, 0, 0, 0, 0, 4])
-    nodeWriter.writerow([1000002, 0, 0, 0, 0, 0, 0, 0, 3])
-    nodeWriter.writerow([1000003, 0, 0, 0, 0, 0, 0, 0, 2])
-    nodeWriter.writerow([1000004, 0, 0, 0, 0, 0, 0, 0, 1])
+
+    # nodeWriter.writerow([1000000, 0, 0, 0, 0, 0, 0, 0, 5])
+    # nodeWriter.writerow([1000001, 0, 0, 0, 0, 0, 0, 0, 4])
+    # nodeWriter.writerow([1000002, 0, 0, 0, 0, 0, 0, 0, 3])
+    # nodeWriter.writerow([1000003, 0, 0, 0, 0, 0, 0, 0, 2])
+    # nodeWriter.writerow([1000004, 0, 0, 0, 0, 0, 0, 0, 1])
     nodeCSV.close()
