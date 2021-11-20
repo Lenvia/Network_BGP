@@ -1,5 +1,5 @@
 mode = 'ipv6'
-year = '2019'
+year = '2018'
 file = './middle/'+mode+'_'+year+'_sanitized_rib.txt'
 
 with open(file) as f:

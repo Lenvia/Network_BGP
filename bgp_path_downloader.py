@@ -6,14 +6,16 @@ from pybgpstream import BGPStream, BGPRecord
 def downloader():
     """Download BGP paths from Routeviews and RIPE NCC from a start date for a certain duration."""
     # Create a new bgpstream instance and a reusable bgprecord instance
+
+    mode = 'ipv4'
+    year = '2019'
+
     stream = BGPStream(
-        from_time="2019-01-01 00:00:00", until_time="2019-01-01 00:01:00 UTC",
+        from_time=year+"-01-01 00:00:00", until_time=year+"-01-01 00:01:00 UTC",
     )
     # stream.add_interval_filter(base, base + int(duration))
     stream.add_filter('record-type', 'ribs')
-    stream.add_filter('ipversion', '6')  # ipv6
-    mode = 'ipv6'
-    year = '2019'
+    stream.add_filter('ipversion', mode[-1])
 
     stream.start()
     path_set = set()

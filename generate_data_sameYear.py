@@ -1,9 +1,9 @@
 import csv
 from collections import defaultdict
 
-mode = 'ipv4&6'
-year = '2021'
-area_list = ['all', 'CH', 'US', 'CH&US']  # 地区
+mode = 'ipv6'
+year = '2018'
+area_list = ['all', 'CN', 'US', 'CN&US']  # 地区
 area = area_list[0]
 
 org_asn = defaultdict(list)  # 组织所管辖的AS列表
@@ -52,11 +52,11 @@ def write_edges(filepath, type):
 
             areaSet = []
             if area == area_list[1]:  # 仅中国
-                areaSet = ['CH', 'TW', 'HK', 'MO']
+                areaSet = ['CN', 'TW', 'HK', 'MO']
             elif area == area_list[2]:  # 美国
                 areaSet = ['US']
             elif area == area_list[3]:  # 中美
-                areaSet = ['CH', 'TW', 'HK', 'MO', 'US']
+                areaSet = ['CN', 'TW', 'HK', 'MO', 'US']
 
             # 全世界范围内的，不作限制 或 这一条边的两个节点都在这个范围内
             if area == area_list[0] or {c1, c2}.issubset(areaSet):
@@ -82,25 +82,6 @@ def write_edges(filepath, type):
                     indegreeMap[as2] += 1  # 只有其他区域-> c2，把c2的入度算进去，另一个节点不放入
                     set_c.add(as2)
 
-
-            # if area == area_list[0] or c1 in areaSet:
-            #     outdegreeMap[as1] += 1
-            #
-            # if area == area_list[0] or {c1, c2}.issubset(areaSet):
-            #     set_c.add(as1)
-            #     set_c.add(as2)
-            #
-            #     indegreeMap[as2] += 1
-
-                # # 如果是ipv4直接写入，如果是ipv6，先找有没有ipv4，如果有 修改。 如果没有 写入
-                # if type == 'ipv4':
-                #     buffer[(as1, as2)] = type
-                # else:
-                #     if buffer.get((as1, as2)) != None:  # 已有ipv4的边，修改
-                #         buffer[(as1, as2)] = 'ipv4&6'
-                #     else:
-                #         buffer[(as1, as2)] = type  # 添加新的ipv6
-
         line = f.readline()  # 继续读下一行
     f.close()
 
@@ -119,8 +100,12 @@ def mag(deg):
 
 
 if __name__ == '__main__':
-    edgeCSV = open("./outputs/edges_" + mode + '_' + year + '_' + area + ".csv", 'w', encoding='utf8')
-    nodeCSV = open("./outputs/nodes_" + mode + '_' + year + '_' + area + ".csv", 'w', encoding='utf8')
+    if area != area_list[0]:
+        edgeCSV = open("./outputs_CN_US/edges_" + mode + '_' + year + '_' + area + ".csv", 'w', encoding='utf8')
+        nodeCSV = open("./outputs_CN_US/nodes_" + mode + '_' + year + '_' + area + ".csv", 'w', encoding='utf8')
+    else:
+        edgeCSV = open("./outputs/edges_" + mode + '_' + year + '_' + area + ".csv", 'w', encoding='utf8')
+        nodeCSV = open("./outputs/nodes_" + mode + '_' + year + '_' + area + ".csv", 'w', encoding='utf8')
 
     nodeWriter = csv.writer(nodeCSV)
     edgeWriter = csv.writer(edgeCSV)

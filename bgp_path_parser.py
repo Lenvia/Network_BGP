@@ -4,7 +4,7 @@ import sqlite3
 
 
 mode = 'ipv6'
-year = '2019'
+year = '2018'
 
 class BgpPaths(object):
     """ Class for storing and sanitizing forward and reverse BGP paths """

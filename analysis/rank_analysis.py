@@ -3,6 +3,7 @@ from matplotlib import pyplot
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import numpy as np
+from pylab import *
 
 
 name_index = 2
@@ -86,34 +87,35 @@ if __name__ == '__main__':
 
 
     color_list = plt.cm.tab20(np.linspace(0, 1, 12))
-    # # 在深色背景上绘制一系列线条时，可以在定性色图中选择一组离散的颜色
-    # plt.cm.magma(np.linspace(0, 1, 15))
-
-    plt.rcParams['font.family'] = ['Times New Roman']
+    mpl.rcParams['font.sans-serif'] = ['SimSun']
     plt.rcParams.update({'font.size': 10})
-    plt.rcParams['figure.figsize'] = (10, 7.0) # 单位是inches
+    plt.rcParams['figure.figsize'] = (10, 7.0)  # 单位是inches
 
     x = ['2020', '2021']
-
-    for i in range(limits):
-        plt.plot(x, values[i], color=color_list[i], marker='o', label=names[i]+' ('+target[i]+')')
+    plt.xlabel('年份')  # X轴标签
 
     # for i in range(limits):
-    #     if i == 9:
-    #         continue
-    #     plt.plot(x, ranks[i], color=color_list[i], marker='o', label=names[i]+' ('+target[i]+')')
+    #     plt.plot(x, values[i], color=color_list[i], marker='o', label=names[i]+' ('+target[i]+')')
+    # plt.ylabel("出度")  # Y轴标签
+    # plt.ylim(-300, 5500)  # Y轴区间
+
+
+    for i in range(limits):
+        if i == 9:
+            continue
+        plt.plot(x, ranks[i], color=color_list[i], marker='o', label=names[i]+' ('+target[i]+')')
+    plt.ylabel("排名")  # Y轴标签
+    plt.ylim(-1, 30)  # Y轴区间
 
     plt.legend(loc=9, ncol=3)  # 让图例生效
-    # plt.xticks(x, names, rotation=1)
-    # plt.margins(0)
-    # plt.subplots_adjust(bottom=0.10)
-    plt.xlabel('Year')  # X轴标签
-    plt.ylabel("Outdegree")  # Y轴标签
-    # plt.ylabel("Rank")  # Y轴标签
-    plt.ylim(-300, 5500)  # Y轴区间
-    # plt.ylim(0, 30)  # Y轴区间
 
-    plt.show()
+    # plt.show()
+
+    # plt.savefig('/Users/yy/Desktop/2020-2021_outdegree.png', bbox_inches='tight', pad_inches=0.2)
+    plt.savefig('/Users/yy/Desktop/2020-2021_rank.png', bbox_inches='tight', pad_inches=0.2)
+    clf()  # 清图。
+    cla()  # 清坐标轴。
+    close()  # 关窗口
 
 
 
