@@ -9,18 +9,31 @@ xxxxxx
 ## 项目结构
 
 ├── README.md
+
 ├── analysis
+
 │  ├── CN_US_analysis.py  // 生成中美AS分布折线图
+
 │  ├── CN_US_analysis_filter.py  // 生成过滤后的中美AS分布折线图
+
 │  ├── csv_analysis.py  // 生成IPv6时间变化折线图
+
 │  ├── global_analysis.py  // 生成全球AS分布折线图
+
 │  ├── rank_analysis.py  // 生成2020-2021年IPv6出度和排名变化折线图
+
 │  └── v4_v6_analysis.py  // 生成IPv4和IPv6分布折线图
+
 ├── as_link_parser.py  // 将路径拆分为最小片段
+
 ├── bgp_path_downloader.py  // 下载数据并处理
+
 ├── bgp_path_parser.py  // 使用peeringdb对IXP进行过滤
+
 ├── generate_data_CN&US.py  // 产生过滤中美AS的结点和边，存储为CSV
+
 ├── generate_data_sameYear.py  // 产生其他所有情况的结点和边，存储为CSV
+
 └── requirements.txt  // 库
 
 
