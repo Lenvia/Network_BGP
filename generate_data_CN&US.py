@@ -1,5 +1,6 @@
 import csv
 from collections import defaultdict
+import os
 
 mode = 'ipv4&6'
 year = '2021'
@@ -112,6 +113,11 @@ def mag(deg):
 
 
 if __name__ == '__main__':
+    if not os.path.exists('./outputs_CN_US'):
+        os.makedirs('./outputs_CN_US')
+    if not os.path.exists('./outputs'):
+        os.makedirs('./outputs')
+
     nodeCSV = open("./outputs_CN_US/filtered_nodes_" + mode + '_' + year + '_' + area + ".csv", 'w', encoding='utf8')
 
     nodeWriter = csv.writer(nodeCSV)

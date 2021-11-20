@@ -1,5 +1,6 @@
 import csv
 from collections import defaultdict
+import os
 
 mode = 'ipv6'
 year = '2018'
@@ -100,6 +101,11 @@ def mag(deg):
 
 
 if __name__ == '__main__':
+    if not os.path.exists('./outputs_CN_US'):
+        os.makedirs('./outputs_CN_US')
+    if not os.path.exists('./outputs'):
+        os.makedirs('./outputs')
+
     if area != area_list[0]:
         edgeCSV = open("./outputs_CN_US/edges_" + mode + '_' + year + '_' + area + ".csv", 'w', encoding='utf8')
         nodeCSV = open("./outputs_CN_US/nodes_" + mode + '_' + year + '_' + area + ".csv", 'w', encoding='utf8')

@@ -1,6 +1,7 @@
 import datetime
 import argparse
 from pybgpstream import BGPStream, BGPRecord
+import os
 
 
 def downloader():
@@ -20,6 +21,10 @@ def downloader():
     stream.start()
     path_set = set()
     print(mode)
+
+    if not os.path.exists('./middle'):
+        os.makedirs('./middle')
+
     f = open('./middle/'+mode+'_'+year+'_rib.txt', 'w')
     while True:
         rec = stream.get_next_record()
